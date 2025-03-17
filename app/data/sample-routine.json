@@ -1,0 +1,29 @@
+{
+  "id": "sample-routine",
+  "name": "Morning Routine",
+  "description": "Tasks to complete every morning",
+  "tasks": [
+    {
+      "id": "task1",
+      "name": "Drink water",
+      "description": "Drink a glass of water after waking up"
+    },
+    {
+      "id": "task2",
+      "name": "Stretch",
+      "description": "Do 5 minutes of stretching exercises"
+    },
+    {
+      "id": "task3",
+      "name": "Meditate",
+      "description": "10 minutes of meditation"
+    },
+    {
+      "id": "task4",
+      "name": "Plan the day",
+      "description": "Review calendar and set priorities for the day"
+    }
+  ],
+  "createdAt": "2023-03-17T08:00:00.000Z",
+  "updatedAt": "2023-03-17T08:00:00.000Z"
+} 

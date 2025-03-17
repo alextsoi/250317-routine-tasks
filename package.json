@@ -1,0 +1,65 @@
+{
+  "name": "routine-tasks",
+  "version": "1.0.0",
+  "description": "A macOS desktop app for managing repeatable TODO lists with custom routines",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "webpack --watch --mode development & electron .",
+    "build-webpack": "webpack --mode production",
+    "build": "npm run build-webpack && electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "todo",
+    "routine",
+    "tasks",
+    "desktop",
+    "macos"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^29.1.0",
+    "electron-store": "^10.0.1",
+    "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "@babel/preset-react": "^7.23.3",
+    "@tailwindcss/postcss7-compat": "^2.2.17",
+    "autoprefixer": "^10.4.21",
+    "babel-loader": "^9.1.3",
+    "css-loader": "^6.10.0",
+    "electron-builder": "^24.9.1",
+    "postcss": "^8.5.3",
+    "postcss-loader": "^8.1.1",
+    "style-loader": "^3.3.4",
+    "tailwindcss": "^4.0.14",
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
+  },
+  "build": {
+    "appId": "com.routinetasks.app",
+    "mac": {
+      "category": "public.app-category.productivity"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!node_modules/*.d.ts",
+      "!node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ]
+  }
+}
