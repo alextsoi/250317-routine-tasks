@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import RoutineList from './RoutineList';
 import RoutineDetail from './RoutineDetail';
 import RoutineForm from './RoutineForm';
+import CalendarView from './CalendarView';
 
 const App = () => {
   const [routines, setRoutines] = useState([]);
   const [selectedRoutine, setSelectedRoutine] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [view, setView] = useState('routines'); // 'routines' or 'calendar'
 
   useEffect(() => {
     loadRoutines();
@@ -51,30 +53,19 @@ const App = () => {
 
   const handleSaveRoutine = async (routineData) => {
     try {
-      let routineId;
+      // If editing an existing routine, use its ID, otherwise generate a new one
+      const routineId = isEditing ? selectedRoutine.id : Date.now().toString();
       
-      if (isEditing && selectedRoutine) {
-        // When editing, use the existing ID
-        routineId = selectedRoutine.id;
-        
-        // Preserve the original ID in the routine data
-        routineData.id = selectedRoutine.id;
-      } else {
-        // When creating a new routine, generate a new ID
-        routineId = Date.now().toString();
-        routineData.id = routineId;
-      }
-      
-      // Save the routine with the correct ID
       await window.api.saveRoutine(routineId, routineData);
+      
       setIsFormOpen(false);
       
-      if (isEditing) {
-        // Update the selected routine with the new data
-        setSelectedRoutine({ ...routineData, id: routineId });
+      // If we were editing, update the selected routine with the new data
+      if (isEditing && selectedRoutine) {
+        const updatedRoutine = await window.api.getRoutine(routineId);
+        setSelectedRoutine(updatedRoutine);
       }
       
-      // Reload the routines list
       loadRoutines();
     } catch (error) {
       console.error('Error saving routine:', error);
@@ -101,14 +92,26 @@ const App = () => {
   };
 
   const handleCompleteTask = async (taskId) => {
-    if (!selectedRoutine) return;
+    if (!selectedRoutine || !selectedRoutine.id) {
+      console.error('Cannot complete task: No routine selected');
+      return;
+    }
     
     try {
       await window.api.completeTask(selectedRoutine.id, taskId);
-      // Reload the routine to get updated task status
-      handleRoutineSelect(selectedRoutine.id);
+      // Refresh the selected routine to show updated task state
+      const updatedRoutine = await window.api.getRoutine(selectedRoutine.id);
+      setSelectedRoutine(updatedRoutine);
     } catch (error) {
       console.error('Error completing task:', error);
+    }
+  };
+
+  const toggleView = () => {
+    setView(view === 'routines' ? 'calendar' : 'routines');
+    // When switching to routines view, clear any selected routine
+    if (view === 'calendar') {
+      setSelectedRoutine(null);
     }
   };
 
@@ -116,46 +119,74 @@ const App = () => {
     <div className="container">
       <div className="header">
         <h1>Routine Tasks</h1>
-        {!selectedRoutine && (
-          <button className="btn" onClick={handleCreateRoutine}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '6px' }}>
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
-            Create New Routine
+        <div className="header-controls">
+          <button 
+            className={`btn btn-secondary view-toggle-btn ${view === 'calendar' ? 'active' : ''}`} 
+            onClick={toggleView}
+          >
+            {view === 'routines' ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '6px' }}>
+                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                </svg>
+                Calendar View
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '6px' }}>
+                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v1h14V3a1 1 0 0 0-1-1H2zM1 9h14v5a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V9z"/>
+                </svg>
+                Routine View
+              </>
+            )}
           </button>
-        )}
-        {selectedRoutine && (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="btn" onClick={handleEditRoutine}>
+          
+          {view === 'routines' && !selectedRoutine && (
+            <button className="btn" onClick={handleCreateRoutine}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '6px' }}>
-                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
               </svg>
-              Edit Routine
+              Create New Routine
             </button>
-            <button className="btn btn-danger" onClick={handleDeleteRoutine}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '6px' }}>
-                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-              </svg>
-              Delete Routine
-            </button>
-          </div>
-        )}
+          )}
+          
+          {view === 'routines' && selectedRoutine && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn" onClick={handleEditRoutine}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '6px' }}>
+                  <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                </svg>
+                Edit Routine
+              </button>
+              <button className="btn btn-danger" onClick={handleDeleteRoutine}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '6px' }}>
+                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                  <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                </svg>
+                Delete Routine
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {!selectedRoutine && (
+      {view === 'routines' && !selectedRoutine && (
         <RoutineList 
           routines={routines} 
           onSelectRoutine={handleRoutineSelect} 
         />
       )}
 
-      {selectedRoutine && (
+      {view === 'routines' && selectedRoutine && (
         <RoutineDetail 
           routine={selectedRoutine} 
           onBack={handleBackToList} 
           onCompleteTask={handleCompleteTask}
         />
+      )}
+      
+      {view === 'calendar' && (
+        <CalendarView routines={routines} />
       )}
 
       {isFormOpen && (

@@ -177,6 +177,11 @@ ipcMain.handle('complete-task', async (event, { routineId, taskId }) => {
 
 ipcMain.handle('get-task-history', async (event, routineId) => {
   try {
+    if (!routineId) {
+      console.error('getTaskHistory: No routineId provided');
+      return [];
+    }
+    
     const historyFilePath = path.join(historyDir, `${routineId}.json`);
     
     if (!fs.existsSync(historyFilePath)) {
@@ -188,5 +193,41 @@ ipcMain.handle('get-task-history', async (event, routineId) => {
   } catch (error) {
     console.error(`Error getting history for routine ${routineId}:`, error);
     return [];
+  }
+});
+
+// New handler to get all routine histories at once
+ipcMain.handle('get-all-task-histories', async (event) => {
+  try {
+    const allHistories = {};
+    
+    // Check if history directory exists
+    if (!fs.existsSync(historyDir)) {
+      return allHistories;
+    }
+    
+    // Get all files in the history directory
+    const files = fs.readdirSync(historyDir);
+    
+    // Read each history file
+    for (const file of files) {
+      if (file.endsWith('.json')) {
+        const routineId = file.replace('.json', '');
+        const historyFilePath = path.join(historyDir, file);
+        
+        try {
+          const historyData = fs.readFileSync(historyFilePath, 'utf8');
+          allHistories[routineId] = JSON.parse(historyData);
+        } catch (parseError) {
+          console.error(`Error parsing history file for routine ${routineId}:`, parseError);
+          allHistories[routineId] = [];
+        }
+      }
+    }
+    
+    return allHistories;
+  } catch (error) {
+    console.error('Error getting all routine histories:', error);
+    return {};
   }
 }); 

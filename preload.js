@@ -44,6 +44,8 @@ contextBridge.exposeInMainWorld(
         return Promise.resolve([]);
       }
       return ipcRenderer.invoke('get-task-history', routineId);
-    }
+    },
+    
+    getAllTaskHistories: () => ipcRenderer.invoke('get-all-task-histories')
   }
 ); 
