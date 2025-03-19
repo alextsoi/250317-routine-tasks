@@ -12,8 +12,9 @@ import EditRoutineScreen from './screens/EditRoutineScreen';
 import CalendarScreen from './screens/CalendarScreen';
 import TaskHistoryScreen from './screens/TaskHistoryScreen';
 
-// Import database
+// Import database and theme
 import Database from './database/Database';
+import theme from './constants/theme';
 
 const Stack = createNativeStackNavigator();
 
@@ -52,7 +53,7 @@ export default function App() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -73,7 +74,7 @@ export default function App() {
         initialRouteName="Home"
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#6366f1',
+            backgroundColor: theme.colors.primary,
           },
           headerTintColor: '#fff',
           headerTitleStyle: {
