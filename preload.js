@@ -46,6 +46,14 @@ contextBridge.exposeInMainWorld(
       return ipcRenderer.invoke('get-task-history', routineId);
     },
     
-    getAllTaskHistories: () => ipcRenderer.invoke('get-all-task-histories')
+    getAllTaskHistories: () => ipcRenderer.invoke('get-all-task-histories'),
+    
+    deleteTaskCompletion: (routineId, taskId, date) => {
+      if (!routineId || !taskId || !date) {
+        console.error('deleteTaskCompletion: Missing routineId, taskId, or date');
+        return Promise.resolve(false);
+      }
+      return ipcRenderer.invoke('delete-task-completion', { routineId, taskId, date });
+    }
   }
 ); 

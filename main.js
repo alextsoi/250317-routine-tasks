@@ -49,10 +49,8 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 
-  // Open DevTools in development mode
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
-  }
+  // Open DevTools for debugging
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -229,5 +227,49 @@ ipcMain.handle('get-all-task-histories', async (event) => {
   } catch (error) {
     console.error('Error getting all routine histories:', error);
     return {};
+  }
+});
+
+// Add new handler to delete a specific task completion
+ipcMain.handle('delete-task-completion', async (event, { routineId, taskId, date }) => {
+  try {
+    if (!routineId || !taskId || !date) {
+      console.error('Cannot delete task completion: Missing routineId, taskId, or date');
+      return false;
+    }
+    
+    const historyFilePath = path.join(historyDir, `${routineId}.json`);
+    
+    if (!fs.existsSync(historyFilePath)) {
+      console.error(`History file not found: ${historyFilePath}`);
+      return false;
+    }
+    
+    // Read the current history
+    const historyData = fs.readFileSync(historyFilePath, 'utf8');
+    let history = JSON.parse(historyData);
+    
+    // Find the index of the completion that matches the taskId and date
+    const completionIndex = history.findIndex(item => 
+      item.taskId === taskId && item.completedAt === date
+    );
+    
+    // Check if we found a matching completion
+    if (completionIndex === -1) {
+      console.error(`No completion found with taskId ${taskId} and date ${date}`);
+      return false;
+    }
+    
+    // Remove the completion at the specified index
+    history.splice(completionIndex, 1);
+    
+    // Save the updated history
+    fs.writeFileSync(historyFilePath, JSON.stringify(history, null, 2));
+    
+    console.log(`Successfully deleted task completion with taskId ${taskId} and date ${date} for routine: ${routineId}`);
+    return true;
+  } catch (error) {
+    console.error(`Error deleting task completion for routine ${routineId}:`, error);
+    return false;
   }
 }); 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TaskHistory = ({ taskName, completions, onClose }) => {
+const TaskHistory = ({ taskId, taskName, completions, onClose, onDeleteCompletion }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
@@ -10,6 +10,13 @@ const TaskHistory = ({ taskName, completions, onClose }) => {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  };
+
+  const handleDelete = (completion, event) => {
+    event.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this task completion record?')) {
+      onDeleteCompletion(taskId, completion.completedAt);
+    }
   };
 
   return (
@@ -53,7 +60,7 @@ const TaskHistory = ({ taskName, completions, onClose }) => {
               </div>
               <div className="card" style={{ boxShadow: 'none', border: '1px solid var(--border-color)' }}>
                 {completions.map((completion, index) => (
-                  <div key={index} className="history-item">
+                  <div key={index} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{ marginRight: '8px', color: 'var(--primary)' }}>
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
@@ -62,6 +69,28 @@ const TaskHistory = ({ taskName, completions, onClose }) => {
                         {formatDate(completion.completedAt)}
                       </span>
                     </div>
+                    <button
+                      onClick={(e) => handleDelete(completion, e)}
+                      className="delete-btn"
+                      title="Delete this record"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--danger)',
+                        cursor: 'pointer',
+                        opacity: 0.7,
+                        transition: 'opacity 0.2s',
+                        padding: '4px',
+                        borderRadius: '4px'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.opacity = 1}
+                      onMouseOut={(e) => e.currentTarget.style.opacity = 0.7}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                        <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                      </svg>
+                    </button>
                   </div>
                 ))}
               </div>
