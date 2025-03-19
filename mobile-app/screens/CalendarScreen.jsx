@@ -107,10 +107,17 @@ const CalendarScreen = ({ navigation }) => {
   
   // Get completions for a specific date
   const getCompletionsForDate = (date) => {
-    const dateString = date.toISOString().split('T')[0];
-    return completions.filter(
-      completion => completion.completedAt.startsWith(dateString)
-    );
+    // Create date string in format YYYY-MM-DD without time zone influence
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
+    
+    return completions.filter(completion => {
+      // Extract only the date part from completedAt
+      const completionDate = completion.completedAt.substring(0, 10);
+      return completionDate === dateString;
+    });
   };
   
   const handleDayPress = (day) => {

@@ -92,16 +92,6 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={commonStyles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.viewToggle}
-          onPress={handleCalendarView}
-        >
-          <Ionicons name="calendar-outline" size={24} color={theme.colors.primary} />
-          <Text style={styles.viewToggleText}>Calendar</Text>
-        </TouchableOpacity>
-      </View>
-
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -129,26 +119,6 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.card,
-    ...theme.shadows.sm,
-  },
-  viewToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.secondary,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.borderRadius.md,
-  },
-  viewToggleText: {
-    marginLeft: theme.spacing.xs,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
   listContainer: {
     padding: theme.spacing.md,
     flexGrow: 1,

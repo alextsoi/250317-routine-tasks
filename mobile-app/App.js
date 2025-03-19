@@ -2,7 +2,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ActivityIndicator, View, StyleSheet, Text, Platform, Alert } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text, Platform, Alert, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 // Import screens
 import HomeScreen from './screens/HomeScreen';
@@ -83,7 +84,17 @@ export default function App() {
         <Stack.Screen 
           name="Home" 
           component={HomeScreen} 
-          options={{ title: 'My Routines' }} 
+          options={({ navigation }) => ({ 
+            title: 'My Routines',
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Calendar')}
+                style={{ marginRight: 10 }}
+              >
+                <Ionicons name="calendar-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+            ),
+          })} 
         />
         <Stack.Screen 
           name="RoutineDetail" 

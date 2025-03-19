@@ -213,7 +213,11 @@ const Database = {
   completeTask: async (routineId, taskId) => {
     try {
       const completionId = Date.now().toString();
-      const completedAt = new Date().toISOString();
+      
+      // Create a date in UTC to avoid timezone issues
+      const now = new Date();
+      // Format the date to ISO string but explicitly handle timezone
+      const completedAt = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}Z`;
 
       await db.runAsync(
         'INSERT INTO task_completions (id, taskId, routineId, completedAt) VALUES (?, ?, ?, ?)',

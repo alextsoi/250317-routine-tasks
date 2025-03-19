@@ -103,12 +103,17 @@ const RoutineDetailScreen = ({ route, navigation }) => {
   const getNextTask = () => {
     if (!routine?.tasks || routine.tasks.length === 0) return null;
     
-    const today = new Date().toISOString().split('T')[0];
+    // Create date string in format YYYY-MM-DD without time zone influence
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
     
     for (const task of routine.tasks) {
       const completions = getTaskCompletions(task.id);
       const completedToday = completions.some(completion => 
-        completion.completedAt.startsWith(today)
+        completion.completedAt.substring(0, 10) === today
       );
       
       if (!completedToday) {
@@ -185,9 +190,15 @@ const RoutineDetailScreen = ({ route, navigation }) => {
           {routine.tasks && routine.tasks.length > 0 ? (
             routine.tasks.map((task, index) => {
               const completions = getTaskCompletions(task.id);
-              const today = new Date().toISOString().split('T')[0];
+              // Create date string in format YYYY-MM-DD without time zone influence
+              const now = new Date();
+              const year = now.getFullYear();
+              const month = String(now.getMonth() + 1).padStart(2, '0');
+              const day = String(now.getDate()).padStart(2, '0');
+              const today = `${year}-${month}-${day}`;
+              
               const completedToday = completions.some(completion => 
-                completion.completedAt.startsWith(today)
+                completion.completedAt.substring(0, 10) === today
               );
 
               return (
