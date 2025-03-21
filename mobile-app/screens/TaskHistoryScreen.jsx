@@ -6,10 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert
+  Alert,
+  Modal,
+  Platform
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Database from '../database/Database';
 import theme, { commonStyles } from '../constants/theme';
 
@@ -17,6 +20,9 @@ const TaskHistoryScreen = ({ route, navigation }) => {
   const { routineId, taskId, taskName } = route.params;
   const [completions, setCompletions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const loadTaskHistory = async () => {
     try {
@@ -63,6 +69,41 @@ const TaskHistoryScreen = ({ route, navigation }) => {
         }
       ]
     );
+  };
+
+  const handleAddCompletion = () => {
+    setSelectedDate(new Date());
+    if (Platform.OS === 'ios') {
+      setModalVisible(true);
+    } else {
+      setShowDatePicker(true);
+    }
+  };
+
+  const handleDateChange = (event, date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+      if (date) {
+        setSelectedDate(date);
+        // For Android, we show confirmation directly after date selection
+        confirmAddCompletion(date);
+      }
+    } else {
+      // For iOS, we just update the date in the modal
+      setSelectedDate(date || selectedDate);
+    }
+  };
+
+  const confirmAddCompletion = async (dateToUse = selectedDate) => {
+    try {
+      await Database.completeTaskWithDate(routineId, taskId, dateToUse);
+      setModalVisible(false);
+      loadTaskHistory();
+      Alert.alert('Success', 'Task completion added successfully');
+    } catch (error) {
+      console.error('Error adding completion:', error);
+      Alert.alert('Error', 'Failed to add completion record');
+    }
   };
 
   const formatDate = (dateString) => {
@@ -138,6 +179,61 @@ const TaskHistoryScreen = ({ route, navigation }) => {
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={renderEmptyList}
       />
+
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={handleAddCompletion}
+      >
+        <Ionicons name="add" size={24} color="white" />
+      </TouchableOpacity>
+
+      {/* Date Picker Modal for iOS */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Select Completion Date</Text>
+            
+            <DateTimePicker
+              value={selectedDate}
+              mode="datetime"
+              display="spinner"
+              onChange={handleDateChange}
+              style={styles.datePicker}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={() => confirmAddCompletion()}
+              >
+                <Text style={styles.buttonText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Date Picker for Android */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="datetime"
+          display="default"
+          onChange={handleDateChange}
+        />
+      )}
     </View>
   );
 };
@@ -215,6 +311,64 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
     color: theme.colors.textSecondary,
     textAlign: 'center',
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: theme.spacing.xl,
+    right: theme.spacing.xl,
+    backgroundColor: theme.colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.md,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    width: '90%',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    ...theme.shadows.lg,
+  },
+  modalTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.lg,
+  },
+  datePicker: {
+    width: '100%',
+    height: 200,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: theme.spacing.lg,
+  },
+  modalButton: {
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    minWidth: '45%',
+    alignItems: 'center',
+  },
+  confirmButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  cancelButton: {
+    backgroundColor: theme.colors.textTertiary,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '500',
   },
 });
 

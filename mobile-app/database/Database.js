@@ -232,6 +232,29 @@ const Database = {
   },
 
   /**
+   * Complete a task with a custom date
+   */
+  completeTaskWithDate: async (routineId, taskId, customDate) => {
+    try {
+      const completionId = Date.now().toString();
+      
+      // Format the date to ISO string
+      const date = new Date(customDate);
+      const completedAt = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}.${String(date.getMilliseconds()).padStart(3, '0')}Z`;
+
+      await db.runAsync(
+        'INSERT INTO task_completions (id, taskId, routineId, completedAt) VALUES (?, ?, ?, ?)',
+        [completionId, taskId, routineId, completedAt]
+      );
+
+      return completionId;
+    } catch (error) {
+      console.error('Error completing task with custom date:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Get task history for a routine
    */
   getTaskHistory: async (routineId) => {
